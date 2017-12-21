@@ -90,8 +90,6 @@ convolution <- function(space, kernel) {
     return(tmp)
 }
 
-
-
 # Implements Conway's game of life rules on a nn matrix
 # Args: 
 #   m: the original matrix
@@ -106,6 +104,19 @@ gol.rules <- function(m, tmp) {
     return(m)
 }
 
+# Generalized version of GOL rules for larger kernels
+# Args:
+#   m: orignal space matrix
+#   tmp: nn matrix of conv step
+#   kernel: the kernel being used
+general.gol.rules <- function(m, tmp, kernel) {
+    s <- nrow(kernel)^2 - 1
+    m <- ifelse(tmp < s/4 & m == 1, 0, m)
+    m <- ifelse(tmp > 3*s/8 & m == 1, 0, m) # here is where it differs
+    m <- ifelse((tmp >= s/4 & tmp <= 3*s/8) & m == 1, 1, m)
+    m <- ifelse(tmp == 3*s/8 & m == 0, 1, m)
+}
+
 
 # Runs single iteration of CA
 # Args:
@@ -114,11 +125,16 @@ gol.rules <- function(m, tmp) {
 #   vis: boolean indicating whether this should be graphed
 # Returns: 
 #   the space matrix after one iteration. Also plots it as needed
-gol.iter <- function(space, kernel, vis) {
+gol.iter <- function(space, kernel, vis, general = FALSE) {
     tmp <- convolution(space, kernel)
         
     # GOL rules
-    space <- gol.rules(space, tmp)
+    if(general == TRUE) {
+        space <- general.gol.rules(space, tmp, kernel)
+    } else {
+        space <- gol.rules(space, tmp)
+    }
+    
     return(space)
 }
 
@@ -171,16 +187,21 @@ generate.shuffled.kernel <- function(side, num.ones) {
 ###################### GOL RULES AND PRE DETERMINED KERNEL #####################
 
 # Intresting kernels:
-gol <- matrix(c(1, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
-jellyfish <- matrix(c(1, 2, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
+gol <- matrix(c(1, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3) # Game of life
+gol.extra <- matrix(c(0, 2, 1, 1, 0, 1, 1, 2, 0), nrow = 3) # Game of life
+jellyfish <- matrix(c(1, 2, 1, 1, 0, 1, 1, 1, 1), nrow = 3) # Literally
 stack <- matrix(c(1, 2, 1, 1, 0, 1, 1, 2, 1), nrow = 3)
 bacteria <- matrix(c(1, 2, 1, 2, 0, 1, 1, 2, 1), nrow = 3)
 exp.block <- matrix(c(1, 2, 1, 2, 0, 2, 1, 2, 1), nrow = 3)
 q.mark <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
-osc.colon <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 2), nrow = 3)
+osc.colon <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 2), nrow = 3) # Interesting oscillators
+osc <- matrix(c(2, 0, 1, 1, 0, 1, 1, 0, 2), nrow = 3) # Entirely oscillators
+gol.general <- matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), nrow = 5)
+
 
 # Quantum
 spooky.action <- generate.kernel(5) %>% ring.outside(., 1)
+
 
 # Produce plots using pre-defined kernels (above) and game of life rules
 ntimes <- 100 # Number of iterations
@@ -188,7 +209,7 @@ space <- generate.space(side = 100, prob = c(0.5, 0.5)) # Starting bitwise matri
 kernel <- gol # choose the kernel from below. Gol = game of life
 # Produces the list of plots
 ca.plot.list <- lapply(1:ntimes, function(i) {
-    space <<- gol.iter(space = space, kernel = kernel, vis = FALSE) 
+    space <<- gol.iter(space = space, kernel = kernel, vis = FALSE, general = TRUE) 
     p <- grid_to_ggplot(space)
     return(p)
 }) 
@@ -202,7 +223,7 @@ ca.plot.list <- lapply(1:ntimes, function(i) {
 # If you're using Rstudio, don't delete plots while this is still running
 # This will cause Rstudio to crash. Stop the program first using the little
 # Stop sign. 
-lapply(length(ca.plot.list):1, function(i) {
+lapply(length(ca.plot.list):(ntimes - 100), function(i) {
     print(ca.plot.list[[i]])
     Sys.sleep(0.1) # Becuase it otherwise acts funny
 })
@@ -247,7 +268,9 @@ ca.summary <- sapply(ca.battery, function(i) {
 
 # This shows what CA had final numbers of between x and y "on" in order
 # to find CA that don't explode or drive to zero
-of.interest <- which(ca.summary > 300 & ca.summary < 1000)
+smallest <- 300
+largest <- 1000
+of.interest <- which(ca.summary > smallest & ca.summary < largest)
 
 
 
