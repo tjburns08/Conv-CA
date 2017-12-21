@@ -168,7 +168,50 @@ generate.shuffled.kernel <- function(side, num.ones) {
     return(result)
 }
 
-###################### PIPELINE ###################### 
+###################### GOL RULES AND PRE DETERMINED KERNEL #####################
+
+# Intresting kernels:
+gol <- matrix(c(1, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
+jellyfish <- matrix(c(1, 2, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
+stack <- matrix(c(1, 2, 1, 1, 0, 1, 1, 2, 1), nrow = 3)
+bacteria <- matrix(c(1, 2, 1, 2, 0, 1, 1, 2, 1), nrow = 3)
+exp.block <- matrix(c(1, 2, 1, 2, 0, 2, 1, 2, 1), nrow = 3)
+q.mark <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
+osc.colon <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 2), nrow = 3)
+
+# Quantum
+spooky.action <- generate.kernel(5) %>% ring.outside(., 1)
+
+# Produce plots using pre-defined kernels (above) and game of life rules
+ntimes <- 100 # Number of iterations
+space <- generate.space(side = 100, prob = c(0.5, 0.5)) # Starting bitwise matrix
+kernel <- gol # choose the kernel from below. Gol = game of life
+# Produces the list of plots
+ca.plot.list <- lapply(1:ntimes, function(i) {
+    space <<- gol.iter(space = space, kernel = kernel, vis = FALSE) 
+    p <- grid_to_ggplot(space)
+    return(p)
+}) 
+
+# You can animate it here by producing the plots and flipping through them
+# Notice I set them to be backwards, so the first one is at the top of the stack
+# in Rstudio. 
+# So print this and wait for it all to be done. Don't look at the screen because
+# The flashing is hard on the eyes.
+
+# If you're using Rstudio, don't delete plots while this is still running
+# This will cause Rstudio to crash. Stop the program first using the little
+# Stop sign. 
+lapply(length(ca.plot.list):1, function(i) {
+    print(ca.plot.list[[i]])
+    Sys.sleep(0.1) # Becuase it otherwise acts funny
+})
+
+###################### GOL RULES AND RANDOM KERNEL ######################
+
+# Brute force geenration of random kernels with GOL rules, to find interesting
+# rules. Note that most of the kernels will be assymetrical in this iteration
+# Leaving to interesting shifting to occur. 
 
 # Space
 space <- generate.space(side = 100, prob = c(0.9, 0.1))
@@ -176,6 +219,8 @@ kernel <- generate.shuffled.kernel(side = 5, num.ones = 6)
 
 sapply(ca.list, sum)
 age.of.universe <- 100
+
+# Each element of the list will be a new kernel applied to a bitwise matrix
 ca.battery <- lapply(1:age.of.universe, function(i) {
     print(i)
     space <- generate.space(side = 100, prob = c(0.5, 0.5))
@@ -192,41 +237,20 @@ ca.battery <- lapply(1:age.of.universe, function(i) {
 })
 
 
+# This computes the total number of cells for each list at the end of the run
+# which allows one to determine if it "explodes" is driven to zero, or 
+# stays in the middle (as GOL would)
 ca.summary <- sapply(ca.battery, function(i) {
     sum.vector <- i$sum.vector
     return(sum.vector[length(sum.vector)])
 })
 
+# This shows what CA had final numbers of between x and y "on" in order
+# to find CA that don't explode or drive to zero
 of.interest <- which(ca.summary > 300 & ca.summary < 1000)
 
 
-# Produce plots
-ntimes <- 1000
-space <- generate.space(side = 100, prob = c(0.5, 0.5))
-kernel <- gol
-ca.plot.list <- lapply(1:ntimes, function(i) {
-    space <<- gol.iter(space = space, kernel = kernel, vis = FALSE) 
-    p <- grid_to_ggplot(space)
-    return(p)
-}) 
 
-
-
-
-# Conclusion: Kernel-based CA can potentially add a variety of life-like CA that 
-# was previously difficult to get. 
-
-# Intresting kernels:
-gol <- matrix(c(1, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
-jellyfish <- matrix(c(1, 2, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
-stack <- matrix(c(1, 2, 1, 1, 0, 1, 1, 2, 1), nrow = 3)
-bacteria <- matrix(c(1, 2, 1, 2, 0, 1, 1, 2, 1), nrow = 3)
-exp.block <- matrix(c(1, 2, 1, 2, 0, 2, 1, 2, 1), nrow = 3)
-q.mark <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
-osc.colon <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 2), nrow = 3)
-
-# Quantum
-spooky.action <- generate.kernel(5) %>% ring.outside(., 1)
 
 
 
