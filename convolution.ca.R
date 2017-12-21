@@ -10,6 +10,18 @@ library(animation)
 library(spatialfil)
 library(tidyverse)
 
+###################### DESCRPTION ######################
+
+# Solves Conway's Game of Life and other 2D CA by performing convolution
+# of a bitwise matrix
+
+# Convolution creates a "number of neighbors" matrix, which is iterated over
+# According to the CA rules (which revolve around the number of neighbors)
+
+# This allows not only a simple implementation of CA, but the ability to 
+# create new CA not only from changing rules, but changing the kernel
+
+
 ###################### FUNCTIONS ######################
 
 # This function comes from the following:
@@ -110,7 +122,10 @@ gol.iter <- function(space, kernel, vis) {
     return(space)
 }
 
-# Ring the outside
+# Produces a ring of a specific number on the outsize of a matrix of zeros
+# Args:
+#   m: matrix of zeros
+#   number: the number you would like to have on the outside of the matrix
 ring.outside <- function(m, number) {
     for(i in 1:nrow(m)) {
         for(j in 1:nrow(m)) {
@@ -123,7 +138,14 @@ ring.outside <- function(m, number) {
 }
 
 
-# Randomize
+# Produces a randomized kernel based on numbers of interest and probabilities
+# of said numbers
+# Args
+#   m: matrix of zeros
+#   numbers: set of numbers to be included in kernel
+#   probs: probabilities for each respective number to appear
+# Returns:
+#   matrix conforming to the specified numbers and probabilities
 randomize.kernel <- function(m, numbers, probs) {
     for(i in 1:nrow(m)) {
         for(j in 1:nrow(m)) {
@@ -139,7 +161,7 @@ randomize.kernel <- function(m, numbers, probs) {
 #   num.ones: the number of 1's to be put in the matrix (the rest is zero)
 # Returns: 
 #   result: the shuffled kernel with the exact number of ones
-generate.exact.kernel <- function(side, num.ones) {
+generate.shuffled.kernel <- function(side, num.ones) {
     content <- c(rep(1, num.ones), rep(0, side^2 - num.ones))
     content <- sample(content, size = length(content), FALSE)
     result <- matrix(content, nrow = side)
@@ -150,9 +172,7 @@ generate.exact.kernel <- function(side, num.ones) {
 
 # Space
 space <- generate.space(side = 100, prob = c(0.9, 0.1))
-kernel <- generate.exact.kernel(side = 5, num.ones = 6)
-
-
+kernel <- generate.shuffled.kernel(side = 5, num.ones = 6)
 
 sapply(ca.list, sum)
 age.of.universe <- 100
