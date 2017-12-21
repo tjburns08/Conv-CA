@@ -109,6 +109,8 @@ gol.rules <- function(m, tmp) {
 #   m: orignal space matrix
 #   tmp: nn matrix of conv step
 #   kernel: the kernel being used
+# Returns: 
+#   m: the next iteration of the original matrix m
 general.gol.rules <- function(m, tmp, kernel) {
     s <- nrow(kernel)^2 - 1
     m <- ifelse(tmp < s/4 & m == 1, 0, m)
@@ -127,14 +129,12 @@ general.gol.rules <- function(m, tmp, kernel) {
 #   the space matrix after one iteration. Also plots it as needed
 gol.iter <- function(space, kernel, vis, general = FALSE) {
     tmp <- convolution(space, kernel)
-        
-    # GOL rules
     if(general == TRUE) {
         space <- general.gol.rules(space, tmp, kernel)
     } else {
         space <- gol.rules(space, tmp)
     }
-    
+
     return(space)
 }
 
@@ -188,18 +188,20 @@ generate.shuffled.kernel <- function(side, num.ones) {
 
 # Intresting kernels:
 gol <- matrix(c(1, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3) # Game of life
-gol.extra <- matrix(c(0, 2, 1, 1, 0, 1, 1, 2, 0), nrow = 3) # Game of life
+gol.self.centered <- matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1), nrow = 3) # Game of life including itself
 jellyfish <- matrix(c(1, 2, 1, 1, 0, 1, 1, 1, 1), nrow = 3) # Literally
 stack <- matrix(c(1, 2, 1, 1, 0, 1, 1, 2, 1), nrow = 3)
 bacteria <- matrix(c(1, 2, 1, 2, 0, 1, 1, 2, 1), nrow = 3)
 exp.block <- matrix(c(1, 2, 1, 2, 0, 2, 1, 2, 1), nrow = 3)
 q.mark <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 1), nrow = 3)
-osc.colon <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 2), nrow = 3) # Interesting oscillators
-osc <- matrix(c(2, 0, 1, 1, 0, 1, 1, 0, 2), nrow = 3) # Entirely oscillators
-gol.general <- matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), nrow = 5)
+osc.colon <- matrix(c(2, 1, 1, 1, 0, 1, 1, 1, 2), nrow = 3) 
+osc <- matrix(c(0, 2, 1, 1, 0, 1, 1, 2, 0), nrow = 3) # Interesting oscillators
+osc.2 <- matrix(c(2, 0, 1, 1, 0, 1, 1, 0, 2), nrow = 3) # Interesting oscillators
+gol.larger <- matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), nrow = 5)
 
 
-# Quantum
+# Quantum (use with general = FALSE)
+# Note that this might need better rules to be fully utilized
 spooky.action <- generate.kernel(5) %>% ring.outside(., 1)
 
 
